@@ -76,7 +76,27 @@ Requerimientos del negocio:
 
 **Respuesta:**
 
+Tabla: Áreas
 
+| Campo | Tipo | Descripcion |
+|------|------------------------|-------------|
+| ID | INT (PK) | Identificador único de área |
+| Nombre | Varchar (100) | Nombre del área |
+
+
+Tabla: Solicitudes
+
+| Campo | Tipo | Descripcion |
+|------|------------------------|-------------|
+| ID | INT (PK) | Identificador único de la solicitud |
+| Titulo | Varchar (100) | Título de la solicitud |
+| Descripcion | Text | Descripción detallada de la solicitud |
+| Area_Solicitante_ID | INT (FK) | Área que genera la solicitud |
+| Area_Destinaria_ID | INT (FK) | Área responsable de atender la solicitud |
+| Prioridad | ENUM ('Baja', 'Media', 'Alta') | Nivel de prioridad asignado |
+| Estado | ENUM ('Pendiente', 'En Proceso', 'Resuelta', 'Rechazada') | Estado actual de la solicitud |
+| Fecha_Creacion | DATETIME | Fecha y hora de creación de la solicitud |
+| Fecha_Actualizacion | DATETIME | Fecha de la última modificación |
 
 ---
 
@@ -86,10 +106,11 @@ Requerimientos del negocio:
 
 | Tema | Qué se dijo (resumen) | Tu supuesto | Justificación |
 |------|------------------------|-------------|---------------|
-| | | | |
-| | | | |
-| | | | |
-| | | | |
+| Uso de la prioridad para ordenar | Carlos pidió que las solicitudes de prioridad alta aparezcan primero, pero María indicó que la prioridad es solo informativa | La prioridad se utilizará únicamente para visualización y filtrado, sin modificar el orden del listado | La entrevista no define una regla oficial de ordenamiento por prioridad y María expresa explícitamente que su función principal es informativa |
+| Reapertura de solicitudes rechazadas | Carlos comentó que a veces un pedido rechazado vuelve a presentarse con más información. Lucas respondió que “rechazada es rechazada” | En esta versión, el estado Rechazada se considera final y no puede reabrirse | No existe un proceso formal definido para la reapertura y mantener “Rechazada” como estado final simplifica el flujo inicial del sistema |
+| Cancelación de solicitudes | María mencionó la necesidad de cancelar pedidos, aunque el sistema actual solo permite borrarlos cuando están pendientes | No se incorporará un estado “Cancelada”; las solicitudes pendientes podrán eliminarse | El escenario no define reglas ni transiciones para un estado de cancelación, por lo que se mantiene el comportamiento existente |
+| Combinación de filtros | No quedó totalmente claro si los filtros de estado y prioridad debían funcionar juntos o por separado | Los filtros se combinarán aplicando ambas condiciones simultáneamente cuando estén seleccionadas | Es el comportamiento más útil para la operación diaria y evita resultados ambiguos al consultar solicitudes |
+| Permisos y autenticación | Se indicó que solo el área destinataria debería cambiar estados, pero también se aclaró que actualmente no existe login | Cualquier usuario con acceso al sistema podrá ejecutar las acciones disponibles en esta versión | La entrevista reconoce explícitamente la ausencia de autenticación, por lo que el control real de permisos queda como mejora futura |
 
 ---
 
@@ -100,22 +121,32 @@ Requerimientos del negocio:
 ### Listado
 **Respuesta:**
 
+La pantalla principal deberá mostrar un listado con todas las solicitudes registradas en el sistema, cada registro deberá presentar el título de la solicitud, el área solicitante, el área destinataria, la prioridad y el estado actual.
 
+Desde el listado, el usuario deberá poder acceder a las acciones disponibles para cada solicitud, como editar, eliminar o cambiar su estado, siguiendo las reglas de negocio predefinidas. El listado deberá poder actualizarse para poder reflejar los cambios hechos por el usuario.
 
 ### Alta, edición y baja
 **Respuesta:**
 
+El sistema deberá permitir registrar nuevas solicitudes ingresando el título, la descripción, el área solicitante, el área destinataria y la prioridad. Todos estos campos serán obligatorios. Las nuevas solicitudes deberán crearse automáticamente con el estado Pendiente.
 
+Las solicitudes únicamente podrán editarse mientras permanezcan en estado Pendiente, si la solicitud ya se encuentra "En proceso", "Resuelta" o "Rechazada", no deberá permitirse su modificación.
+
+De igual manera, solo podrán eliminarse las solicitudes en estado Pendiente. Antes de realizar la eliminación, el sistema deberá solicitar una confirmación al usuario para evitar eliminaciones accidentales.
 
 ### Cambio de estado
 **Respuesta:**
 
+El sistema deberá permitir modificar el estado de una solicitud respetando el flujo definido por las reglas de negocio, una solicitud podrá pasar de "Pendiente" a "En proceso" cuando sea tomada por el área destinataria. Luego, una solicitud "En proceso" podrá marcarse como "Resuelta".
 
+También deberá existir la posibilidad de marcar una solicitud "Pendiente" como "Rechazada" cuando no corresponda su atención. No deberán permitirse cambios de estado que contradigan el flujo ya establecido, ni la reapertura de solicitudes rechazadas.
 
 ### Filtros y orden
 **Respuesta:**
 
+El listado deberá permitir filtrar las solicitudes por estado y por prioridad. Cuando ambos filtros se utilicen simultáneamente, el sistema deberá mostrar únicamente aquellas solicitudes que cumplan todas las condiciones seleccionadas.
 
+Respecto al orden del listado, se mantendrá el orden predeterminado del sistema, ya que durante la entrevista no se definió una regla de negocio que establezca un ordenamiento por prioridad u otro criterio específico. La prioridad tendrá un carácter informativo y servirá como criterio de filtrado, pero no modificará el orden de visualización.
 
 ---
 
@@ -125,7 +156,20 @@ Requerimientos del negocio:
 
 **Respuesta:**
 
+De acuerdo con la información obtenida durante la entrevista, se considera que las siguientes funcionalidades quedan fuera del alcance de esta versión del sistema:
 
+* Implementación de autenticación de usuarios (inicio de sesión).
+* Gestión de roles y permisos según el área o tipo de usuario.
+* Historial de cambios o auditoría de las solicitudes.
+* Reapertura de solicitudes rechazadas, ya que no existe una definición clara del proceso.
+* Incorporación de un estado "Cancelada", debido a que no fue definido como parte del flujo de trabajo.
+* Envío de notificaciones por correo electrónico u otros medios cuando una solicitud cambia de estado.
+* Adjuntar archivos o documentación a las solicitudes.
+* Comentarios o conversaciones entre las áreas involucradas.
+* Ordenamiento automático de las solicitudes por prioridad, ya que durante la entrevista no se alcanzó un consenso sobre este comportamiento.
+* Reportes, estadísticas o indicadores de gestión.
+
+Estas funcionalidades podrían incorporarse en futuras versiones del sistema, pero no forman parte del alcance definido para esta prueba técnica.
 
 ---
 
@@ -135,7 +179,15 @@ Requerimientos del negocio:
 
 **Respuesta:**
 
+Una vez obtenido el acceso al repositorio, el trabajo lo abordaré de forma progresiva para comprender el estado actual del proyecto antes de realizar modificaciones.
 
+En primer lugar, revisaré la estructura del proyecto y la documentación disponible para identificar la organización del código y las tecnologías utilizadas. Después, ejecutaré la aplicación para verificar su funcionamiento y detectar posibles errores o comportamientos que no coincidan con los requerimientos definidos durante el análisis.
+
+Luego analizaré el flujo de las principales funcionalidades (listado, alta, edición, baja, cambio de estado y filtros) con el objetivo de comparar el comportamiento actual con las reglas de negocio establecidas en la Instancia 1. Los problemas encontrados serán documentados antes de aplicar cualquier corrección.
+
+Una vez identificado el origen de cada inconveniente, se realizarán las modificaciones necesarias tratando de mantener la estructura existente del proyecto y evitando cambios innecesarios. Después de cada corrección se ejecutarán pruebas funcionales para verificar que la funcionalidad opere correctamente y que no se introduzcan nuevos errores.
+
+En el proceso documentaré las correcciones realizadas, las decisiones tomadas durante el desarrollo y las limitaciones encontradas, dejando el proyecto listo para su entrega.
 
 ---
 

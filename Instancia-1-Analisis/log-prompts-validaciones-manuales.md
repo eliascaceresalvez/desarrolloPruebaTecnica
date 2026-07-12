@@ -158,7 +158,7 @@ erDiagram
 
     ESTADO ||--o{ SOLICITUD : "determina el ciclo de"
     PRIORIDAD ||--o{ SOLICITUD : "clasifica la urgencia de"
-
+```
 2\. Diccionario de Datos (Estructura de Tablas)
 -----------------------------------------------
 
@@ -521,3 +521,85 @@ Aquí tenés una versión optimizada manteniendo tu estructura exacta:
     
 
 Con este bloque, esa sección de tu documento de análisis queda 10 de 10. ¡Listo para pasar a la siguiente consigna!
+
+Interacción 13
+--------------
+
+### Usuario (Literal)
+
+5. Modelo de datos propuesto
+
+*Proponé tablas y campos necesarios para soportar el proceso. No hace falta coincidir con el código todavía.*
+
+
+Quiero que me des las posibles tablas, solamente títulos
+
+### IA (Literal)
+
+5. Modelo de datos propuesto
+* Tabla: Áreas
+
+* Tabla: Solicitudes
+
+Interacción 14
+--------------
+
+### Usuario (Literal)
+
+La entrevista deja temas sin cerrar, puedes hacer un resumen de cuales son?
+
+### IA (Literal)
+
+A partir de la transcripción de la entrevista, se desprenden varias contradicciones, vacíos legales y cabos sueltos que los usuarios mencionan pero sobre los cuales no hay consenso o el sistema actual no define.
+
+Como analista, estos son los temas sin cerrar que debés documentar como "Supuestos" o dejar asentados para resolver en el diseño:
+
+1. El impacto de la Prioridad en el orden del listado
+Existe una clara contradicción entre los tres referentes sobre cómo debe comportarse la pantalla con respecto a la urgencia:
+
+Carlos (Compras): Exige que las solicitudes "Altas" aparezcan primero en el tope.
+
+María (Administración): Sostiene que es solo una columna de referencia visual y que "nunca cerramos eso".
+
+Lucas (Mesa de Ayuda): Le da lo mismo cómo ordene, siempre y cuando se vea la columna.
+
+2. La Reapertura de Solicitudes Rechazadas
+No hay un criterio unificado sobre si el estado "Rechazada" es definitivo o reversible:
+
+Lucas (Mesa de Ayuda): Asume que si una solicitud es rechazada o resuelta, el flujo termina ahí ("para mí... rechazada es final").
+
+Carlos (Compras): Plantea una excepción de negocio crítica; necesita un botón o mecanismo para reabrir pedidos rechazados porque los usuarios se arrepienten o se equivocan al cargarlos.
+
+3. La Cancelación de solicitudes por el creador
+María expresa el deseo de que el área solicitante pueda "cancelar" un pedido de forma formal mientras este siga Pendiente. Sin embargo, advierte que actualmente esa función no existe y el sistema solo les permite "Borrarla" (lo que elimina el registro por completo en lugar de cambiarle el estado a Cancelado). Quedó sin definir si se creará el estado "Cancelada" o se mantendrá el borrado.
+
+4. El funcionamiento real de los filtros
+Los usuarios saben qué filtros quieren (Estado y Prioridad), pero desconocen cómo operan actualmente. María explícitamente dice: "Nadie me explicó si filtran solo lo que ya está en pantalla o si van a la base". Tampoco está cerrado en la entrevista si el sistema base soporta la simultaneidad que Lucas asume (que funcionen ambos filtros juntos con lógica AND).
+
+5. La validación de identidades y áreas (Ausencia de Login)
+Aunque Sistemas aclaró que el Login "queda para después", esto deja un vacío operativo crítico sin cerrar: al tener que escribir el nombre del área a mano, no hay reglas que impidan que un usuario tipée mal su área (ej: escribir "Admin" en lugar de "Administración") o, peor aún, que un usuario pulse botones de resolución que le corresponden a otra área.
+
+💡 Para tu Plantilla: Identificar estos temas te permite lucirte en la sección de "Supuestos adoptados" (§6). Allí debés escribir cómo decidiste vos (como analista) destrabar estos temas para poder avanzar con el desarrollo (por ejemplo: "Se adopta el supuesto de que el listado se ordenará por prioridad alta primero para satisfacer a Compras...").
+
+Interacción 15
+--------------
+
+### Usuario (Literal)
+
+Quiero que, segun el punto 8, me dijas las funcionalidades del sistemas en esta version
+
+### IA (Literal)
+
+Basándonos en lo analizado previamente en la Interacción 8 (el diagnóstico de la realidad técnica al momento de la entrevista), las funcionalidades que realmente están operativas y codificadas en esta versión preliminar (legacy) del sistema son las siguientes:
+
+* Creación de Solicitudes (Con campos obligatorios parciales): Permite ingresar un título, descripción, prioridad y las áreas, aunque el área solicitante se debe tipear de forma manual por teclado debido a la falta de un sistema de usuarios.
+
+* Listado General de Solicitudes: Una pantalla común donde se renderizan en una tabla todos los pedidos cargados por las diferentes áreas de la organización.
+
+* Transiciones de Estado Básicas: Botones o acciones en la interfaz que permiten cambiar el estado de un registro de Pendiente a En Proceso, y de En Proceso a Resuelta o Rechazada.
+
+* Edición de Texto: Un botón que permite modificar los campos de la solicitud. Nota: Funciona en cualquier momento porque el sistema actual no valida si el pedido ya fue tomado o resuelto.
+
+* Borrado Directo de Registros: Un botón para eliminar una solicitud. Nota: Ejecuta la acción de forma inmediata con un solo clic, sin solicitar ningún tipo de confirmación previa al usuario.
+
+* Filtros Individuales en Pantalla: Selectores ubicados arriba del listado para segmentar por Estado y por Prioridad, aunque persisten fallas de persistencia o simultaneidad entre ambos.
