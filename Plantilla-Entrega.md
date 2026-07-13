@@ -32,6 +32,7 @@
 |--------------------|---------------|---------------------------------------------|
 | src/models/Database.php | Se corrigió un error de sintaxis agregando el punto y coma faltante entre las llamadas a setAttribute() de PDO | Permitir que la conexión a la base de datos se inicialice correctamente y evitar un error de sintaxis que impedía ejecutar la aplicación |
 | src/controllers/api.php | Se cerró correctamente el bloque try/catch y el método handleRequest() agregando la llave faltante | Corregir un error de sintaxis que impedía cargar la API y procesar las solicitudes HTTP |
+| assets/js/app.js | Se declaró la función createSolicitud() como asíncrona (async) para permitir el uso correcto de await | Corregir un error de JavaScript que impedía ejecutar la lógica de creación de solicitudes y el funcionamiento del frontend |
 
 ---
 
