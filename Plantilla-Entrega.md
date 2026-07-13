@@ -30,7 +30,7 @@
 
 | Archivo modificado | Qué se cambió | Por qué (vincular con Instancia 1 si aplica) |
 |--------------------|---------------|---------------------------------------------|
-| | | |
+| src/models/Database.php | Se corrigió un error de sintaxis agregando el punto y coma faltante entre las llamadas a setAttribute() de PDO | Permitir que la conexión a la base de datos se inicialice correctamente y evitar un error de sintaxis que impedía ejecutar la aplicación |
 
 ---
 
