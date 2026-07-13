@@ -12,14 +12,34 @@ document.addEventListener('DOMContentLoaded', function () {
 
 async function loadSolicitudes() {
     showLoading(true);
+
+    const estado = document.getElementById('filterEstado').value;
+    const prioridad = document.getElementById('filterPrioridad').value;
+
+    const params = new URLSearchParams();
+
+    if (estado) {
+        params.append('estado', estado);
+    }
+
+    if (prioridad) {
+        params.append('prioridad', prioridad);
+    }
+
+    const url = params.toString()
+        ? `${API_URL}?${params.toString()}`
+        : API_URL;
+
     try {
         const response = await fetch(API_URL);
         const result = await response.json();
+
         if (result.success) {
             displaySolicitudes(result.data);
         } else {
             showToast('Error: ' + result.error, 'danger');
         }
+
     } catch (error) {
         showToast('Error de conexión: ' + error.message, 'danger');
     } finally {

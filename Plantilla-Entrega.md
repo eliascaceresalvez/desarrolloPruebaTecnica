@@ -34,6 +34,8 @@
 | src/controllers/api.php | Se cerró correctamente el bloque try/catch y el método handleRequest() agregando la llave faltante | Corregir un error de sintaxis que impedía cargar la API y procesar las solicitudes HTTP |
 | assets/js/app.js | Se declaró la función createSolicitud() como asíncrona (async) para permitir el uso correcto de await | Corregir un error de JavaScript que impedía ejecutar la lógica de creación de solicitudes y el funcionamiento del frontend |
 | index.html | Se agregó el atributo name="titulo" al campo de título del formulario | Permitir que el formulario envíe correctamente el título al backend, cumpliendo con el requerimiento funcional de registrar nuevas solicitudes |
+| assets/js/app.js | Se modificó la carga del listado para enviar los filtros seleccionados al backend | Implementar el requerimiento funcional de filtrado por estado y prioridad |
+| src/models/Solicitud.php | Se implementó el filtrado dinámico en la consulta SQL según los parámetros recibidos | Permitir que el sistema muestre únicamente las solicitudes que cumplen los criterios seleccionados por el usuario |
 
 ---
 

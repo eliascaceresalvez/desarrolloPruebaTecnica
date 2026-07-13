@@ -9,9 +9,31 @@ class Solicitud {
     }
 
     public function getAll($filters = []) {
-        $sql = 'SELECT * FROM solicitudes ORDER BY created_at DESC';
-        $stmt = $this->db->query($sql);
-        return $stmt->fetchAll();
+        
+        $sql = 'SELECT * FROM solicitudes';
+
+        $where = [];
+        $params = [];
+
+        if(!empty($filters['estado'])) {
+            $where[] = "estado = ?";
+            $params[] = $filters['estado'];
+        }
+
+        if(!empty($filters['prioridad'])) {
+            $where[] = "prioridad = ?";
+            $params[] = $filters['prioridad'];
+        }
+
+        if(!empty($where)) {
+            $sql .= " WHERE " . implode(" AND ", $where);
+        }
+
+        $sql .= " ORDER BY created_at DESC";
+
+        $stmt = $this->db->query($sql, $params);
+
+        return $stmt -> fetchAll();
     }
 
     public function getById($id) {

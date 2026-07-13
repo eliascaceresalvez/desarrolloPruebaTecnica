@@ -736,3 +736,184 @@ Summary de lo que debés corregir en la Instancia 2:
 2. Modificar el método getAll() en Solicitud.php para que lea esos parámetros mediante $_GET y concatene las cláusulas WHERE correspondientes en SQL utilizando INNER JOIN (tal como diseñaste en la sección de análisis).
 
 3. Agregar la función de confirmación real vinculando el botón del listado al confirmModal antes de disparar el borrado.
+
+Interacción 20
+--------------
+
+### Usuario (Literal)
+
+al haber arreglado el codigo de sus problemas iniciales me da este error 
+```
+Error de conexion: Unexpected token '<', "<br/> <b>"... is not valid JSON
+```
+cuales pueden ser los posibles problemas?
+
+### IA (Literal)
+
+El error que te muestra la pantalla (Error de conexión: Unexpected token '<', "<br /><b>"... is not valid JSON) es un clásico del desarrollo web. Significa que el frontend (JavaScript) intentó procesar la respuesta del servidor con un response.json(), pero el backend (PHP) en lugar de un JSON le devolvió un error HTML (que empieza con caracteres como <br /> o <b> de los mensajes nativos de PHP).
+
+Al revisar el código fuente de tu backend, el problema está localizado en un error sintáctico oculto en src/controllers/api.php.
+
+El problema principal: Llave sin cerrar en api.php
+Si miramos el bloque try-catch principal de la función handleRequest() en tu controlador api.php, vas a notar que falta cerrar la llave del bloque catch, lo que rompe toda la estructura de la clase a partir de la línea 66:
+
+```
+PHP
+// CÓDIGO ACTUAL CON EL BUG EN api.php:
+        } catch (Exception $e) {
+            $this->sendError('Error del servidor: ' . $e->getMessage(), 500);
+
+    } // <-- ESTA LLAVE DEBERÍA CERRAR LA FUNCIÓN, PERO EL CATCH QUEDÓ ABIERTO
+
+```
+Como el catch nunca se cierra formalmente antes de que empiece la función getAll(), PHP se rompe internamente al interpretar el archivo arrojando un Fatal Error en formato HTML, que es precisamente el <br /><b> que tu JS no puede procesar.
+
+Código Corregido para src/controllers/api.php:
+Modificá esa sección (alrededor de las líneas 64-68) para que quede así, cerrando correctamente ambas llaves:
+
+```
+PHP
+        } catch (Exception $e) {
+            $this->sendError('Error del servidor: ' . $e->getMessage(), 500);
+        } // <-- Cierra el catch
+    } // <-- Cierra la función handleRequest()
+```
+
+Otros dos motivos comunes si el error persiste:
+Si tras cerrar esa llave el cartel sigue apareciendo, el problema se debe a la configuración del entorno:
+
+1. Credenciales incorrectas en config/config.php: Si el usuario, contraseña o el nombre de la base de datos en tu config.php no coinciden con los de tu entorno local, el constructor de Database.php lanzará una excepción. Como api.php no tiene un import de Database.php arriba, PHP tirará un error fatal en HTML diciendo que la clase no se encuentra o que falló la conexión antes de poder enviar un JSON limpio.
+
+2. La Base de Datos no está importada: Asegurate de haber ejecutado el script sql/database.sql en tu servidor MySQL (phpMyAdmin o MySQL Workbench) para que la tabla solicitudes exista realmente.
+
+Interacción 21
+--------------
+
+### Usuario (Literal)
+
+los codigos con los bugs principales fueron resueltos, como database.php, index.html, api.php y apps.js 
+Es posible que el problema sea la base de datos?
+
+### IA (Literal)
+
+Sí, es sumamente probable. De hecho, una vez que los errores de sintaxis y lógica en el código de api.php, Database.php y app.js están corregidos, el único motivo por el cual el backend seguiría arrojando un error HTML (<br /><b>...) es un fallo en la capa de datos.
+
+Cuando la conexión o una consulta a la base de datos falla, PHP levanta una excepción PDOException. Al no ser capturada limpiamente o al intentar renderizar el error nativo, PHP genera un mensaje de error formateado en HTML (<b>Fatal error:</b>... o <b>Database error:</b>...), rompiendo el JSON esperado por el frontend.
+
+Los problemas de base de datos más comunes que causan esto en la Instancia 2 son:
+
+1. Desajuste de credenciales en config/config.php
+Este es el fallo más habitual. Si tu servidor local de MySQL (por ejemplo, mediante XAMPP, Laragon, Docker o phpMyAdmin) utiliza credenciales distintas a las que vienen por defecto, la base de datos rechazará la conexión:
+
+* ¿Qué revisar en config/config.php?
+
+* DB_HOST: Por lo general es 'localhost' o '127.0.0.1'.
+
+* DB_USER: En entornos locales suele ser 'root'.
+
+* DB_PASS: En XAMPP/Laragon suele estar vacío (''), pero en sistemas como MAMP o instalaciones manuales puede ser 'root' o una contraseña propia.
+
+* DB_NAME: Debe coincidir exactamente con el nombre de la base de datos que creaste (por defecto en el script es 'sistema_solicitudes').
+
+2. La Base de Datos o las tablas no existen
+Si no has importado el archivo SQL, la API intentará consultar una tabla inexistente y fallará de inmediato.
+
+La solución:
+
+1. Entra a tu gestor de base de datos (phpMyAdmin, DBeaver, MySQL Workbench, etc.).
+
+2. Crea la base de datos sistema_solicitudes si no existe.
+
+3. Ejecuta el contenido completo de sql/database.sql para crear la tabla solicitudes y poblarla con los datos iniciales.
+
+3. Conflicto de puertos en MySQL
+Si tienes otra aplicación ocupando el puerto de MySQL (por defecto el 3306), el servidor no podrá responder. Asegúrate de que el servicio de MySQL en tu panel de control (como el de XAMPP) esté corriendo con el indicador en verde.
+
+🔍 ¿Cómo descubrir exactamente cuál es el error de la Base de Datos?
+Para no adivinar, puedes ver el mensaje real que PHP te está ocultando bajo el error de JSON:
+
+1. Abre tu navegador y presiona F12 (para abrir las Herramientas de Desarrollador).
+
+2. Ve a la pestaña Network (Red).
+
+3. Recarga la página. Verás una petición de color rojo hacia api.php.
+
+4. Haz clic sobre api.php y dirígete a la pestaña Response (Respuesta) o Preview (Vista previa).
+
+5. Ahí verás el error de PHP literal en texto/HTML (por ejemplo: "Access denied for user 'root'@'localhost'" o "Table 'sistema_solicitudes.solicitudes' doesn't exist").
+
+Interacción 22
+--------------
+
+### Usuario (Literal)
+
+Encontré el problema, no estaba cargada la base de datos
+Ya con la base de datos funcional y la pagina mostrando las solicitudes quiero pasar a a los filtros disfuncionales, cual puede ser el problema?
+
+### IA (Literal)
+
+¡Qué gran noticia que hayas podido levantar la base de datos y ya veas las solicitudes en pantalla! Ese es un paso enorme.
+
+Ahora, respecto a **los filtros disfuncionales**, el problema es que actualmente están "desconectados" en tres niveles del código (frontend, controlador y modelo). Aunque la interfaz de usuario tiene los botones y desplegables, la información de los filtros nunca viaja ni se procesa.
+
+Aquí te detallo exactamente dónde está el problema en cada capa:
+
+---
+
+### 1. El problema en el Frontend (`assets/js/app.js`)
+
+Cuando el usuario cambia un filtro, se dispara `applyFilters()`, que a su vez llama a `loadSolicitudes()`. El problema está en esta línea:
+
+```javascript
+// assets/js/app.js
+async function loadSolicitudes() {
+    showLoading(true);
+    try {
+        const response = await fetch(API_URL); // <--- ERROR: Se llama a la API limpia, sin parámetros
+
+```
+
+**¿Por qué falla?** El frontend nunca lee los valores seleccionados en los elementos HTML `<select>` de estado y prioridad (`filterEstado` y `filterPrioridad`). Por lo tanto, no se los envía a la API.
+
+---
+
+### 2. El problema en el Controlador (`src/controllers/api.php`)
+
+Cuando la API recibe la petición GET para listar todo, ejecuta la función `getAll()`:
+
+```php
+// src/controllers/api.php
+private function getAll() {
+    $items = $this->solicitud->getAll(); // <--- ERROR: Llama al modelo sin pasarle ningún filtro
+    $this->sendResponse($items);
+}
+
+```
+
+**¿Por qué falla?** Incluso si el frontend enviara parámetros en la URL (como `api.php?estado=en_proceso`), el controlador los ignora por completo. No recupera los parámetros de `$_GET` para pasárselos al modelo.
+
+---
+
+### 3. El problema en el Modelo (`src/models/Solicitud.php`)
+
+En la clase de acceso a datos, el método `getAll` está "cableado" (hardcoded) para ignorar cualquier filtro y traer todo siempre:
+
+```php
+// src/models/Solicitud.php
+public function getAll($filters = []) {
+    $sql = 'SELECT * FROM solicitudes ORDER BY created_at DESC'; // <--- ERROR: Consulta fija sin WHERE
+    $stmt = $this->db->query($sql);
+    return $stmt->fetchAll();
+}
+
+```
+
+**¿Por qué falla?** Aunque el método declara recibir un array `$filters = []`, adentro no tiene ninguna lógica para construir dinámicamente un `WHERE estado = ? AND prioridad = ?`.
+
+---
+
+### 🛠️ Hoja de ruta para resolverlo en la Instancia 2:
+
+1. **Modificar `app.js`:** En la función `loadSolicitudes()`, debes obtener los valores de los inputs usando `document.getElementById('filterEstado').value` y concatenarlos a la `API_URL` como parámetros de consulta (Query Params): `api.php?estado=...&prioridad=...`.
+2. **Modificar `api.php`:** En `getAll()`, lee esos parámetros desde la superglobal `$_GET` de PHP (ej. `$_GET['estado']` y `$_GET['prioridad']`) y pásalos como un array asociativo al método `$this->solicitud->getAll($filtros)`.
+3. **Modificar `Solicitud.php`:** En `getAll($filters)`, debes reconstruir la sentencia `$sql` agregando dinámicamente la cláusula `WHERE` y haciendo el binding seguro de parámetros si `$filters['estado']` o `$filters['prioridad']` están presentes.
