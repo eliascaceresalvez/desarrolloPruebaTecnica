@@ -60,7 +60,7 @@ class SolicitudAPI {
             }
         } catch (Exception $e) {
             $this->sendError('Error del servidor: ' . $e->getMessage(), 500);
-
+        }
     }
 
     private function getAll() {
