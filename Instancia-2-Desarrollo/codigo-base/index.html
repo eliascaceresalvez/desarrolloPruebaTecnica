@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="assets/css/style.css" rel="stylesheet">
 </head>
+
 <body>
     <div class="container-fluid py-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
@@ -84,7 +86,7 @@
                         <input type="hidden" id="solicitudId" name="id">
                         <div class="mb-3">
                             <label for="titulo" class="form-label">Título *</label>
-                            <input type="text" class="form-control" id="titulo" required>
+                            <input type="text" class="form-control" id="titulo" name="titulo" required>
                         </div>
                         <div class="mb-3">
                             <label for="descripcion" class="form-label">Descripción *</label>
@@ -92,7 +94,8 @@
                         </div>
                         <div class="mb-3">
                             <label for="area_solicitante" class="form-label">Área solicitante *</label>
-                            <input type="text" class="form-control" id="area_solicitante" name="area_solicitante" required>
+                            <input type="text" class="form-control" id="area_solicitante" name="area_solicitante"
+                                required>
                         </div>
                         <div class="mb-3">
                             <label for="area_destino" class="form-label">Área destinataria *</label>
@@ -141,4 +144,5 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/app.js"></script>
 </body>
+
 </html>
