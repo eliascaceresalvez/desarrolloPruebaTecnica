@@ -16,11 +16,11 @@
 
 | # | Bug / síntoma | Archivo | Evidencia | Hipótesis de causa |
 |---|---------------|---------|-----------|-------------------|
-| 1 | | | | |
-| 2 | | | | |
-| 3 | | | | |
-| 4 | | | | |
-| 5 | | | | |
+| 1 | La aplicación no inicia correctamente | src/models/Database.php y src/controllers/api.php | Se detectó la ausencia de un punto y coma en Database.php y una llave de cierre faltante en api.php, lo que provoca Parse Error al ejecutar la aplicación | Es probable que los archivos hayan quedado con errores durante una refactorización o edición y no se hayan ejecutado pruebas de sintaxis antes de incorporarlos al proyecto |
+| 2 | No es posible crear nuevas solicitudes | index.html y assets/js/app.js | El campo titulo no tiene name y createSolicitud() usa await sin async | Es probable que el formulario y la lógica JavaScript hayan sido modificados de forma independiente, generando inconsistencias entre la vista y el código del cliente |
+| 3 | Los filtros no funcionan | assets/js/app.js y src/models/Solicitud.php | La interfaz permite seleccionar filtros, la API los recibe, pero el modelo no los utiliza | La funcionalidad parece haber quedado implementada solo de forma parcial, completando la interfaz y la API, pero sin finalizar la lógica de consulta en el modelo |
+| 4 | Se permite editar y eliminar solicitudes que no deberían modificarse | src/models/Solicitud.php y src/controllers/api.php | No existen validaciones sobre el estado antes de actualizar o eliminar registros. | Es probable que inicialmente se implementara únicamente el CRUD básico y que las reglas de negocio definidas posteriormente no se incorporaran al backend |
+| 5 | El cambio de estado acepta cualquier transición | src/models/Solicitud.php y src/controllers/api.php | No se valida el flujo de estados ni los valores permitidos | Es probable que la implementación priorizara la actualización del estado sin incorporar las restricciones del proceso definidas por el negocio |
 
 *(Agregar filas si encontrás más fallos.)*
 
