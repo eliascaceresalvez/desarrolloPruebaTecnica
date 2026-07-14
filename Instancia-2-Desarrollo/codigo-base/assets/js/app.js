@@ -31,7 +31,7 @@ async function loadSolicitudes() {
         : API_URL;
 
     try {
-        const response = await fetch(API_URL);
+        const response = await fetch(url);
         const result = await response.json();
 
         if (result.success) {

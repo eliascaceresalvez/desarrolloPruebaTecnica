@@ -917,3 +917,167 @@ public function getAll($filters = []) {
 1. **Modificar `app.js`:** En la función `loadSolicitudes()`, debes obtener los valores de los inputs usando `document.getElementById('filterEstado').value` y concatenarlos a la `API_URL` como parámetros de consulta (Query Params): `api.php?estado=...&prioridad=...`.
 2. **Modificar `api.php`:** En `getAll()`, lee esos parámetros desde la superglobal `$_GET` de PHP (ej. `$_GET['estado']` y `$_GET['prioridad']`) y pásalos como un array asociativo al método `$this->solicitud->getAll($filtros)`.
 3. **Modificar `Solicitud.php`:** En `getAll($filters)`, debes reconstruir la sentencia `$sql` agregando dinámicamente la cláusula `WHERE` y haciendo el binding seguro de parámetros si `$filters['estado']` o `$filters['prioridad']` están presentes.
+
+Interacción 23
+--------------
+
+### Usuario (Literal)
+
+terminado esto el codigo ya cumple con los requisitos minimos, ahora quiero pasar al siguiente punto
+
+Reglas de edición, eliminación y cambio de estado coherentes con tu Instancia 1.
+
+Cuales son los archivos para poder mejorar el codigo?
+
+### IA (Literal)
+
+Para implementar las reglas de **edición, eliminación y cambio de estado** de manera coherente con tu análisis de la Instancia 1 (control de flujos, inmutabilidad y confirmación de borrado), los archivos clave que debés modificar en el proyecto son exactamente **tres**:
+
+---
+
+### 1. `assets/js/app.js` (Capa de Presentación / Frontend)
+
+En este archivo vas a manejar la experiencia de usuario y las validaciones visuales antes de que los datos viajen al servidor:
+
+* **Para el Borrado:** Debés modificar la función que elimina solicitudes para que, en lugar de disparar el `DELETE` de inmediato, abra el `confirmModal` (que ya está estructurado en tu `index.html`) y espere a que el usuario haga clic en el botón de confirmación.
+* **Para la Edición y Cambio de Estado:** Debés ocultar o deshabilitar los botones de "Editar" (`editarSolicitud`) o de cambio de estado ("Tomar", "Resolver", "Rechazar") en la tabla HTML dependiendo del estado actual del ítem (por ejemplo, si el estado es `resuelta` o `rechazada`, no debería renderizarse el botón de editar).
+
+---
+
+### 2. `src/controllers/api.php` (Capa de Control / API Backend)
+
+Este archivo actúa como barrera de seguridad. Aunque ocultes los botones en el frontend, un usuario avanzado podría enviar peticiones directas por consola o con herramientas como Postman. Aquí debés:
+
+* **Validar en el `PUT` (Actualización):** Antes de llamar a `$this->solicitud->update($id, $data)`, debés consultar el estado actual de la solicitud en la base de datos. Si el estado es distinto de `pendiente` (es decir, ya está `en_proceso`, `resuelta` o `rechazada`), debés bloquear la petición y responder un error `400 Bad Request` indicando que el registro no es editable.
+* **Validar en el `PATCH` (Cambio de Estado):** En el método `cambiarEstado($id)`, debés implementar las transiciones de estado permitidas por tu máquina de estados UML (por ejemplo, validar que solo se pueda pasar a `resuelta` o `rechazada` si el estado actual es `en_proceso`).
+* **Validar en el `DELETE` (Eliminación):** Controlar que solo se permita eliminar solicitudes que estén en estado `pendiente`.
+
+---
+
+### 3. `src/models/Solicitud.php` (Capa de Datos / Persistencia)
+
+Aquí implementarás las consultas necesarias para que el controlador tome decisiones:
+
+* **Método `cambiarEstado($id, $nuevoEstado)`:** Deberás asegurarte de que realice el update correspondiente.
+* **Método `update($id, $data)`:** Asegurar que el binding de datos sea seguro y que se respeten los campos clave.
+* Si decidiste implementar *Soft Delete* (borrado lógico) como un supuesto de tu análisis para evitar pérdidas accidentales, deberás cambiar la sentencia `DELETE FROM solicitudes...` por un `UPDATE solicitudes SET activo = 0...` tanto en el modelo como en la estructura de tu tabla.
+
+Interacción 24
+--------------
+
+### Usuario (Literal)
+
+no es mejor idea hacer validacion de delete en solicitud.php? Esto debido a que si en otro momento existe otro controlador, admin.php podria editar cualquier solicitud, por lo que la regla "solo editar pendientes" quedaria duplicada
+
+### IA (Literal)
+
+¡Es una **excelente idea** y demuestra una visión impecable de arquitectura de software! Estás aplicando el principio **DRY (*Don't Repeat Yourself*)** y delegando la responsabilidad de la integridad de los datos a la capa que corresponde: el **Modelo**.
+
+Si colocás las reglas de negocio únicamente en `api.php`, el día de mañana si la empresa escala y agregan un controlador `admin.php`, un comando de consola (`cron.php`), o un sistema de colas, estarías obligado a duplicar la validación en cada uno de esos puntos. Peor aún, si a un desarrollador se le olvida ponerla en el nuevo controlador, se rompería la regla del negocio.
+
+Por lo tanto, **centralizar las validaciones críticas en el Modelo (`Solicitud.php`) es la mejor práctica.**
+
+Aquí te muestro cómo estructurar el código en cada archivo para implementar tu enfoque de forma robusta:
+
+---
+
+### 1. Modificación en el Modelo (`src/models/Solicitud.php`)
+
+Antes de realizar un `UPDATE` o un `DELETE`, el modelo debe consultar el estado actual del registro. Si no está en estado `pendiente`, debe rechazar la operación arrojando una excepción (`Exception`).
+
+```php
+// src/models/Solicitud.php
+
+public function update($id, $data) {
+    // 1. Validar el estado actual antes de editar
+    $solicitudActual = $this->getById($id);
+    if (!$solicitudActual) {
+        throw new Exception("La solicitud no existe.");
+    }
+    
+    if ($solicitudActual['estado'] !== 'pendiente') {
+        throw new Exception("No se puede editar una solicitud que no esté en estado pendiente.");
+    }
+
+    // 2. Si pasa la validación, ejecuta el UPDATE
+    $sql = 'UPDATE solicitudes SET titulo = ?, descripcion = ?, area_solicitante = ?,
+            area_destino = ?, prioridad = ? WHERE id = ?';
+    $params = [
+        $data['titulo'],
+        $data['descripcion'],
+        $data['area_solicitante'],
+        $data['area_destino'],
+        $data['prioridad'],
+        $id
+    ];
+    $stmt = $this->db->query($sql, $params);
+    return true;
+}
+
+public function delete($id) {
+    // 1. Validar el estado actual antes de borrar
+    $solicitudActual = $this->getById($id);
+    if (!$solicitudActual) {
+        throw new Exception("La solicitud no existe.");
+    }
+    
+    if ($solicitudActual['estado'] !== 'pendiente') {
+        throw new Exception("Solo se pueden eliminar solicitudes en estado pendiente.");
+    }
+
+    // 2. Si pasa la validación, ejecuta el DELETE
+    $stmt = $this->db->query('DELETE FROM solicitudes WHERE id = ?', [$id]);
+    return $stmt->rowCount() > 0;
+}
+
+```
+
+---
+
+### 2. Cómo queda el Controlador (`src/controllers/api.php`)
+
+Al pasarle la responsabilidad al modelo, tus controladores se vuelven mucho más limpios ("*Slim Controllers*"). Su única tarea ahora es atrapar (`catch`) el error que arroje el modelo y transformarlo en una respuesta JSON bonita para el usuario.
+
+```php
+// src/controllers/api.php
+
+private function update($id) {
+    $data = $this->getInputData();
+    
+    // Validaciones de campos obligatorios básicos
+    $errors = $this->solicitud->validate($data);
+    if (!empty($errors)) {
+        $this->sendError($errors, 400);
+        return;
+    }
+
+    try {
+        // El modelo se encarga de verificar las reglas de negocio complejas
+        $this->solicitud->update($id, $data);
+        $this->sendResponse(['message' => 'Solicitud actualizada con éxito']);
+    } catch (Exception $e) {
+        // Si el modelo arroja la excepción del estado, el controlador responde el error limpiamente
+        $this->sendError($e->getMessage(), 400);
+    }
+}
+
+private function delete($id) {
+    try {
+        $this->solicitud->delete($id);
+        $this->sendResponse(['message' => 'Solicitud eliminada con éxito']);
+    } catch (Exception $e) {
+        $this->sendError($e->getMessage(), 400);
+    }
+}
+
+```
+
+---
+
+### 📌 Conclusión para tu entrega técnica:
+
+Hacer esto elevará drásticamente la nota de tu backend por tres razones:
+
+1. **Seguridad Absoluta:** No importa qué controlador o script del sistema intente modificar la base de datos, el Modelo actuará como un escudo infranqueable para las reglas de negocio.
+2. **Código Limpio:** Evitás la duplicación de código redundante.
+3. **Mantenibilidad:** Si el día de mañana el negocio cambia y deciden que las solicitudes *En Proceso* también se pueden editar, solo modificás una sola línea en `Solicitud.php` en lugar de buscar en múltiples controladores.

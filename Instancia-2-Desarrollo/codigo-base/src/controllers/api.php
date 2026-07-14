@@ -59,7 +59,7 @@ class SolicitudAPI {
                     $this->sendError('Método no permitido', 405);
             }
         } catch (Exception $e) {
-            $this->sendError('Error del servidor: ' . $e->getMessage(), 500);
+            $this->sendError($e->getMessage(), 400);
         }
     }
 

@@ -13,14 +13,14 @@ Corregir y completar el módulo en `codigo-base/` según tu **análisis de Insta
 
 ### Nivel mínimo
 
-- [ ] El proyecto carga sin error fatal de PHP/JS.
-- [ ] Listar, crear, editar y eliminar solicitudes.
-- [ ] Campos obligatorios al crear/editar.
-- [ ] Instrucciones de ejecución en la Plantilla de Entrega.
+- [x] El proyecto carga sin error fatal de PHP/JS.
+- [x] Listar, crear, editar y eliminar solicitudes.
+- [x] Campos obligatorios al crear/editar.
+- [x] Instrucciones de ejecución en la Plantilla de Entrega.
 
 ### Nivel estándar
 
-- [ ] Reglas de edición, eliminación y cambio de estado coherentes con tu Instancia 1.
+- [x] Reglas de edición, eliminación y cambio de estado coherentes con tu Instancia 1.
 - [ ] Validaciones en código (no solo ocultar botones en pantalla).
 
 ### Nivel refinado

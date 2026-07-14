@@ -57,6 +57,17 @@ class Solicitud {
     }
 
     public function update($id, $data) {
+
+        $solicitud = $this->getById($id);
+
+        if(!$solicitud) {
+            return false;
+        }
+
+        if($solicitud['estado'] !== 'pendiente') {
+            throw new Exception('Solo pueden editarse solicitudes pendientes.');
+        }
+
         $sql = 'UPDATE solicitudes SET titulo = ?, descripcion = ?, area_solicitante = ?,
                 area_destino = ?, prioridad = ? WHERE id = ?';
         $params = [
@@ -72,30 +83,62 @@ class Solicitud {
     }
 
     public function delete($id) {
+
+        $solicitud = $this->getById($id);
+
+        if(!$solicitud){
+            return false;
+        }
+
+        if($solicitud['estado'] !== 'pendiente') {
+            throw new Exception('Solo pueden eliminarse solicitudes pendientes.');
+        }
+
         $stmt = $this->db->query('DELETE FROM solicitudes WHERE id = ?', [$id]);
         return $stmt->rowCount() > 0;
     }
 
     public function cambiarEstado($id, $nuevoEstado) {
+
+        $solicitud = $this->getById($id);
+
+        if(!$solicitud) {
+            return false;
+        }
+        
+        $transiciones = [
+            'pendiente' => ['en_proceso'],
+            'en proceso' => ['resuelta', 'rechazada'],
+            'resuelta' => [],
+            'rechazada' => []
+        ];
+
+        $estadoActual = $solicitud['estado'];
+
+        if (!in_array($nuevoEstado, $transiciones[$estadoActual])) {
+            throw new Exception('Cambio de estado no permitido.');
+        }
+
         $stmt = $this->db->query(
             'UPDATE solicitudes SET estado = ? WHERE id = ?',
             [$nuevoEstado, $id]
         );
+
         return $stmt->rowCount() > 0;
     }
 
     public function validate($data) {
         $errors = [];
-        if (empty($data['titulo'])) {
+        if (empty(trim($data['titulo'] ?? ''))) {
             $errors[] = 'El título es obligatorio';
         }
-        if (empty($data['descripcion'])) {
+        if (empty(trim($data['descripcion'] ?? ''))) {
             $errors[] = 'La descripción es obligatoria';
         }
-        if (empty($data['area_solicitante'])) {
+        if (empty(trim($data['area_solicitante'] ?? ''))) {
             $errors[] = 'El área solicitante es obligatoria';
         }
-        if (empty($data['area_destino'])) {
+        if (empty(trim($data['area_destino'] ?? ''))) {
             $errors[] = 'El área destinataria es obligatoria';
         }
         if (empty($data['prioridad'])) {
