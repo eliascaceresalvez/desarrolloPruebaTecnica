@@ -21,12 +21,12 @@ Corregir y completar el módulo en `codigo-base/` según tu **análisis de Insta
 ### Nivel estándar
 
 - [x] Reglas de edición, eliminación y cambio de estado coherentes con tu Instancia 1.
-- [ ] Validaciones en código (no solo ocultar botones en pantalla).
+- [x] Validaciones en código (no solo ocultar botones en pantalla).
 
 ### Nivel refinado
 
-- [ ] Filtros y orden del listado según tu §7 de Instancia 1.
-- [ ] Mensajes de error claros y comportamiento predecible.
+- [x] Filtros y orden del listado según tu §7 de Instancia 1.
+- [x] Mensajes de error claros y comportamiento predecible.
 
 ## Restricciones
 

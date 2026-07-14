@@ -108,7 +108,7 @@ class Solicitud {
         
         $transiciones = [
             'pendiente' => ['en_proceso'],
-            'en proceso' => ['resuelta', 'rechazada'],
+            'en_proceso' => ['resuelta', 'rechazada'],
             'resuelta' => [],
             'rechazada' => []
         ];
