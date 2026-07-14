@@ -2,7 +2,7 @@
 
 > Completar junto con el código corregido.  
 > Nombre del candidato: Elías Martín Cáceres Alvez  
-> Fecha de entrega: _______________________  
+> Fecha de entrega: 15/07/2026  
 > URL del repositorio público: https://github.com/eliascaceresalvez/desarrolloPruebaTecnica  
 > **Enviar la URL por email antes del jueves 16/07/2026, 23:00 hs** al contacto principal: **direcciondegestioninformatica@diputadosmisiones.gov.ar** (Lun–Vie, 8:00–12:00 hs). Contacto secundario: ver [Consigna-General.md](../Consigna-General.md#entrega-y-contacto).
 
